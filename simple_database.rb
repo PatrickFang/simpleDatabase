@@ -1,63 +1,55 @@
-class CommandParser
-  attr_reader :input
+class SimpleDatabase
+  attr_reader :file_path, :table
 
-  def initialize(input)
-    @input ||= input
+  def initialize(file_path)
+    @file_path   ||= file_path
+    @table       ||= {}
+    #key is value in table, value is the apperance count
+    @count_table ||= {}
   end
 
-  def operation
-    parsed_input[0] if parsed_input.length >= 1
+  def set(key, value)
+    table[key.to_sym] = value
   end
 
-  def key
-    parsed_input[1] if parsed_input.length >= 2
+  def get(key)
+    table[key.to_sym]
   end
 
-  def value
-    parsed_input[2] if parsed_input.length >= 3
+  def unset(key)
+    table.delete[key.to_sym]
+  end
+
+  def numequalto(value)
+    table.select{  }.count
+  end
+
+  def begin
+  end
+
+  def rollback
+  end
+
+  def commit
+  end
+
+  def print_data
+    table.each { |key, value| puts "#{key}: #{value}" }
+  end
+
+  def load_data
+    File.open(file_path) do |f|
+      f.each_line do |line|
+        key, value = parsed_entry(line)
+        table[key.to_sym] = value
+      end
+    end
   end
 
   private
 
-  def parsed_input
-    input.gsub!(/\n/, "")
-    input.gsub(/\s+/m, ' ').strip.split(" ")
+  def parsed_entry(line)
+    key, value = line.split(" ")
+    return key, value
   end
-end
-
-class SimpleDatabase
-  def initialize(on_disk_path = "data.txt")
-  end
-
-
-end
-
-
-
-
-operation = ""
-while operation != 'END'
-  command = gets
-  puts "Your entered: " + command
-
-  parsed_command = CommandParser.new(command)
-  operation = parsed_command.operation
-  key = parsed_command.key
-  value = parsed_command.value
-
-  puts "parsed commands: #{operation} #{key} #{value}"
-
-  case operation
-  when "SET"
-   puts 'im setting'
-  when "GET"
-
-  when "UNSET"
-
-  when "NUMEQUALTO"
-
-  else 
-    'unknwo command'
-  end
-
 end
