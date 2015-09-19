@@ -11,25 +11,22 @@ class CommandExecuter
     case operation
     when "SET"
       $db.set(key, value)
-      $db.create_or_update_file(key, value, true) unless in_transaction
+      $db.create_or_update_file(key, value) unless in_transaction
 
-      old_count = $db.get(value, false)
-      new_count = old_count + 1
-      $db.set(value, new_count, false)
+      $db.set(value, 0, false)
+      new_count = $db.get(value, false)
       $db.create_or_update_file(value, new_count, false) unless in_transaction
     when "GET"
       puts $db.get(key)
     when "UNSET"
+      count_key = $db.get(key)
+      $db.unset(count_key.to_s, false)
       $db.unset(key)
-      value = $db.get(key, false)
-      $db.unset(value, false)
 
-      old_count = $db.get(value, false)
-      new_count = old_count + 1
-      $db.set(value, new_count, false)
-      $db.create_or_update_file(value, new_count, false) unless in_transaction
+      $db.delete_data_file(key) unless in_transaction
 
-      $db.delete_file(key) unless in_transaction
+      current_count = $db.get(count_key, false)
+      $db.create_or_update_file(count_key, current_count, false) unless in_transaction
     when "NUMEQUALTO"
       puts $db.get(key, false)
     when "BEGIN"

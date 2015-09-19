@@ -11,17 +11,20 @@ class SimpleDatabase
 
   def set(key, value, is_data=true)
     if is_data
-      #puts "there there there"
       data_table[key.to_sym] = value
     else
-      #puts "here here here"
-      count_table[key.to_sym] = value
+      if count_table[key.to_sym]
+        count_table[key.to_sym] += 1
+      else
+        count_table[key.to_sym] = 1
+      end
+      puts "new count in set: #{count_table[key.to_sym]}"
     end
   end
 
   def get(key, is_data=true)
     if is_data
-      data_table[key.to_sym]
+      data_table[key.to_sym] ? data_table[key.to_sym] : "NULL"
     else
       count_table[key.to_sym] ? count_table[key.to_sym] : 0
     end
@@ -29,9 +32,13 @@ class SimpleDatabase
 
   def unset(key, is_data=true)
     if is_data
-      data_table.delete[key.to_sym]
+      data_table.delete(key.to_sym)
     else
-      count_table[key.to_sym] -= 1
+      if count_table[key.to_sym]
+        count_table[key.to_sym] -= 1
+      else
+        count_table[key.to_sym] = 0
+      end
     end
   end
 
@@ -42,6 +49,12 @@ class SimpleDatabase
   end
 
   def commit
+  end
+
+  def delete_data_file(key)
+    full_path = "#{dir_path_to_data}#{key}.txt"
+    puts "deleting file with key: #{key}"
+    File.delete(full_path)
   end
 
   def create_or_update_file(key, value, is_data=true)
@@ -76,14 +89,14 @@ class SimpleDatabase
       key = fname.split(".")[0]
 
       if is_data
-        data_table[key.to_sym] = content(path)
+        data_table[key.to_sym] = file_content(path)
       else
-        count_table[key.to_sym] = content(path)
+        count_table[key.to_sym] = file_content(path)
       end
     end
   end
 
-  def content(path_to_data)
+  def file_content(path_to_data)
     File.open(path_to_data) { |f| f.readline }
   end
 end
