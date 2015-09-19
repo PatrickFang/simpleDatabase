@@ -23,12 +23,16 @@ class SimpleDatabase
     if is_data
       data_table[key.to_sym]
     else
-      count_table[key.to_sym]
+      count_table[key.to_sym] ? count_table[key.to_sym] : 0
     end
   end
 
-  def unset(key)
-    data_table.delete[key.to_sym]
+  def unset(key, is_data=true)
+    if is_data
+      data_table.delete[key.to_sym]
+    else
+      count_table[key.to_sym] -= 1
+    end
   end
 
   def begin
