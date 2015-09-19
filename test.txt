@@ -1,0 +1,13 @@
+SET a 1
+GET a
+SET b 2
+GET b
+SET c 3
+GET c
+
+SET d 4
+GET d 
+NUMEQUALTO 4
+SET e 1
+GET e
+NUMEQUALTO 1

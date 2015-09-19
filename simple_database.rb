@@ -1,27 +1,34 @@
 class SimpleDatabase
-  attr_reader :file_path, :table
+  attr_reader :file_path, :data_table, :count_table, :dir_path_to_data, :dir_path_to_count
 
-  def initialize(file_path)
-    @file_path   ||= file_path
-    @table       ||= {}
-    #key is value in table, value is the apperance count
-    @count_table ||= {}
+  def initialize(file_path, dir_path_to_data, dir_path_to_count)
+    @dir_path_to_data  ||= dir_path_to_data
+    @dir_path_to_count ||= dir_path_to_count
+    @file_path         ||= file_path
+    @data_table        ||= {}
+    @count_table       ||= {}
   end
 
-  def set(key, value)
-    table[key.to_sym] = value
+  def set(key, value, is_data=true)
+    if is_data
+      #puts "there there there"
+      data_table[key.to_sym] = value
+    else
+      #puts "here here here"
+      count_table[key.to_sym] = value
+    end
   end
 
-  def get(key)
-    table[key.to_sym]
+  def get(key, is_data=true)
+    if is_data
+      data_table[key.to_sym]
+    else
+      count_table[key.to_sym]
+    end
   end
 
   def unset(key)
-    table.delete[key.to_sym]
-  end
-
-  def numequalto(value)
-    table.select{  }.count
+    data_table.delete[key.to_sym]
   end
 
   def begin
@@ -33,23 +40,46 @@ class SimpleDatabase
   def commit
   end
 
-  def print_data
-    table.each { |key, value| puts "#{key}: #{value}" }
+  def create_or_update_file(key, value, is_data=true)
+    full_path = if is_data
+      "#{dir_path_to_data}#{key}.txt"
+    else
+      "#{dir_path_to_count}#{key}.txt"
+    end
+
+    puts "writing new count: #{value}" unless is_data
+    File.open(full_path, 'w') { |f| f.write(value) }
   end
 
-  def load_data
-    File.open(file_path) do |f|
-      f.each_line do |line|
-        key, value = parsed_entry(line)
-        table[key.to_sym] = value
-      end
-    end
+  def load_db
+    load(dir_path_to_data)
+    load(dir_path_to_count, false)
+  end
+
+  def print_data
+    puts "data_table: "
+    data_table.each { |key, value| puts "#{key}: #{value}" }
+    puts "count_table: "
+    count_table.each { |key, value| puts "#{key}: #{value}" }
   end
 
   private
 
-  def parsed_entry(line)
-    key, value = line.split(" ")
-    return key, value
+  def load(dir_path, is_data=true)
+    Dir.foreach(dir_path) do |fname|
+      next if fname == '.' or fname == '..'
+      path = "#{dir_path}#{fname}"
+      key = fname.split(".")[0]
+
+      if is_data
+        data_table[key.to_sym] = content(path)
+      else
+        count_table[key.to_sym] = content(path)
+      end
+    end
+  end
+
+  def content(path_to_data)
+    File.open(path_to_data) { |f| f.readline }
   end
 end
