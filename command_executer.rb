@@ -1,21 +1,21 @@
 class CommandExecuter
   attr_reader :operation, :key, :value
 
-  def initialize(operation, key, value)
+  def initialize(operation, key, value=0)
     @operation ||= operation
     @key       ||= key
     @value     ||= value
   end
 
-  def excute(in_transaction=false)
+  def excute
     case operation
     when "SET"
       $db.set(key, value)
-      $db.create_or_update_file(key, value) unless in_transaction
+      $db.create_or_update_file(key, value)
 
       $db.set(value, 0, false)
       new_count = $db.get(value, false)
-      $db.create_or_update_file(value, new_count, false) unless in_transaction
+      $db.create_or_update_file(value, new_count, false)
     when "GET"
       puts $db.get(key)
     when "UNSET"
@@ -23,20 +23,14 @@ class CommandExecuter
       $db.unset(count_key.to_s, false)
       $db.unset(key)
 
-      $db.delete_data_file(key) unless in_transaction
+      $db.delete_data_file(key)
 
       current_count = $db.get(count_key, false)
-      $db.create_or_update_file(count_key, current_count, false) unless in_transaction
+      $db.create_or_update_file(count_key, current_count, false)
     when "NUMEQUALTO"
       puts $db.get(key, false)
-    when "BEGIN"
-
-    when "ROLLBACK"
-      #revert the last transaction block
-    when "COMMIT"
-      #write to disk and close all transactions
     else 
-      'unknown command'
+      'UNKNOWN COMMAND'
     end
   end
 end

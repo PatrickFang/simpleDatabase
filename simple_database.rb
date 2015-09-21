@@ -18,7 +18,6 @@ class SimpleDatabase
       else
         count_table[key.to_sym] = 1
       end
-      puts "new count in set: #{count_table[key.to_sym]}"
     end
   end
 
@@ -40,15 +39,6 @@ class SimpleDatabase
         count_table[key.to_sym] = 0
       end
     end
-  end
-
-  def begin
-  end
-
-  def rollback
-  end
-
-  def commit
   end
 
   def delete_data_file(key)
