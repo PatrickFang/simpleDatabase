@@ -9,6 +9,32 @@ class CommandBuffer
   end
 
   def process(operation, key, value, block_index)
+    if $nested_block_count == -1
+      CommandExecuter.new(operation, key, value).excute
+    else
+      if operation.in?("SET", "UNSET")
+        direct_process(operation, key, value, block_index)
+      elsif operation == "GET"
+        get_from_buffer(key)
+      elsif operation == "NUMEQUALTO"
+        numequalto_from_buffer(value)
+      elsif operation == "COMMIT"
+        commit
+        $nested_block_count = -1
+      elsif operation == "ROLLBACK"
+        if $nested_block_count == -1
+          "NO TRANSACTION"
+        else
+          rollback
+          $nested_block_count -= 1
+        end
+      elsif operation == "BEGIN"
+        $nested_block_count -= 0
+      end
+    end
+  end
+
+  def direct_process(operation, key, value, block_index)
     if operation.in?("SET", "UNSET")
       affected_data[block_index] |= [key]
       if block_index != data_change_history[key.to_sym].last[:block_index]
@@ -28,22 +54,6 @@ class CommandBuffer
             << { diff: history.last[:diff] - 1, block_index: block_index }
         end
       end
-    elsif operation == "GET"
-      get_from_buffer(key)
-    elsif operation == "NUMEQUALTO"
-      numequalto_from_buffer(value)
-    elsif operation == "COMMIT"
-      commit
-      $nested_block_count = -1
-    elsif operation == "ROLLBACK"
-      if $nested_block_count == -1
-        "NO TRANSACTION"
-      else
-        rollback
-        $nested_block_count -= 1
-      end
-    elsif operation == "BEGIN"
-      $nested_block_count -= 0
     end
   end
 
