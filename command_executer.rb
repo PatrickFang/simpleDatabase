@@ -19,15 +19,19 @@ class CommandExecuter
     when "GET"
       puts $db.get(key)
     when "UNSET"
-      count_key = $db.get(key)
-      $db.unset(count_key.to_s, false)
-      $db.unset(key)
+      if $db.get(key) != "NULL"
+        count_key = $db.get(key)
+        $db.unset(count_key.to_s, false)
+        $db.unset(key)
 
-      $db.delete_data_file(key)
+        $db.delete_data_file(key)
 
-      current_count = $db.get(count_key, false)
-      $db.create_or_update_file(count_key, current_count, false)
-    when "NUMEQUALTO"
+        current_count = $db.get(count_key, false)
+        $db.create_or_update_file(count_key, current_count, false)
+      else
+        "DOES NOT EXIST"
+      end
+    when "N"
       puts $db.get(key, false)
     else 
       'UNKNOWN COMMAND'
