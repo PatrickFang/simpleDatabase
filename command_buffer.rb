@@ -21,9 +21,9 @@ class CommandBuffer
         end
       else
         data_change_history[key.to_sym].last = { value: value, block_index: block_index }
+
         affected_data[block_index].each do |key|
           count_key = data_change_history[key.to_sym]
-
           history = count_change_history[count_key.to_sym]
             << { diff: history.last[:diff] - 1, block_index: block_index }
         end
@@ -31,11 +31,19 @@ class CommandBuffer
     elsif operation == "GET"
       get_from_buffer(key)
     elsif operation == "NUMEQUALTO"
-      numequalto_from_buffer(key)
+      numequalto_from_buffer(value)
     elsif operation == "COMMIT"
       commit
+      $nested_block_count = -1
     elsif operation == "ROLLBACK"
-      rollback
+      if $nested_block_count == -1
+        "NO TRANSACTION"
+      else
+        rollback
+        $nested_block_count -= 1
+      end
+    elsif operation == "BEGIN"
+      $nested_block_count -= 0
     end
   end
 
@@ -56,7 +64,7 @@ class CommandBuffer
   end
 
   def get_from_buffer(key)
-    if data_change_history[key.to_sym].nil
+    if data_change_history[key.to_sym].nil?
       CommandExecuter.new("GET", key).excute
     else
       data_change_history[key.to_sym].last[:value]
@@ -64,10 +72,11 @@ class CommandBuffer
   end
 
   def numequalto_from_buffer(key)
-
-
-  end
-
-  def get_initial_count_from_db
+    initial_count = CommandExecuter.new("NUMEQUALTO", key).excute
+    if count_change_history[key.to_sym].nil?
+      initial_count
+    else
+      initial_count + count_change_history[key.to_sym].last[:diff]
+    end
   end
 end

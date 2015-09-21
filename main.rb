@@ -10,11 +10,10 @@ $db = SimpleDatabase.new(temp_path, path_to_data, path_to_data_count)
 
 $db.load_db
 $db.print_data
+$nested_block_count = -1
 
 operation = ""
 command_buffer = CommandBuffer.new
-nested_block_count = 0
-
 while operation != 'END'
   command = gets
   if command == "PEND"
