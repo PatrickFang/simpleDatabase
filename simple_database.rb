@@ -23,7 +23,7 @@ class SimpleDatabase
 
   def get(key, is_data=true)
     if is_data
-      data_table[key.to_sym] ? data_table[key.to_sym] : "NULL"
+      data_table[key.to_sym] #? data_table[key.to_sym] : "NULL"
     else
       count_table[key.to_sym] ? count_table[key.to_sym] : 0
     end
@@ -54,7 +54,7 @@ class SimpleDatabase
       "#{dir_path_to_count}#{key}.txt"
     end
 
-    puts "writing new count: #{value}" unless is_data
+    #puts "writing new count: #{value}" unless is_data
     File.open(full_path, 'w') { |f| f.write(value) }
   end
 

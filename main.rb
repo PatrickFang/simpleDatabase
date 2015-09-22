@@ -23,7 +23,7 @@ while operation != 'END'
     operation = parsed_command.operation
     key = parsed_command.key
     value = parsed_command.value
-    puts "commands: #{operation} #{key} #{value}"
+    #puts "commands: #{operation} #{key} #{value}"
 
     command_buffer.process(operation, key, value)
 

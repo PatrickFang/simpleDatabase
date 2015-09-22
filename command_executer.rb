@@ -17,9 +17,9 @@ class CommandExecuter
       new_count = $db.get(value, false)
       $db.create_or_update_file(value, new_count, false)
     when "GET"
-      puts $db.get(key)
+      return $db.get(key)
     when "UNSET"
-      if $db.get(key) != "NULL"
+      if $db.get(key) != nil
         count_key = $db.get(key)
         $db.unset(count_key.to_s, false)
         $db.unset(key)
@@ -31,8 +31,8 @@ class CommandExecuter
       else
         "DOES NOT EXIST"
       end
-    when "N"
-      puts $db.get(key, false)
+    when "NUMEQUALTO"
+      return $db.get(key, false)
     else 
       'UNKNOWN COMMAND'
     end
