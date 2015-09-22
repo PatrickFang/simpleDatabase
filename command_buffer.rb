@@ -13,7 +13,12 @@ class CommandBuffer
   def process(operation, key, value)
     if @block_counter == -1 && operation != "BEGIN"
       if operation == "GET" || operation == "NUMEQUALTO"
-        puts CommandExecuter.new(operation, key, value).excute
+        value = CommandExecuter.new(operation, key, value).excute
+        if value.nil?
+          puts "NULL"
+        else
+          puts value
+        end
       elsif operation == "ROLLBACK"
         "NO TRANSACTION"
       else
@@ -23,12 +28,12 @@ class CommandBuffer
       if operation == "SET" || operation == "UNSET"
         in_transaction_process(operation, key, value, @block_counter)
       elsif operation == "GET"
-        if get_from_buffer(key)
-          puts get_from_buffer(key)
-        else
+        if get_from_buffer(key).nil?
           puts "NULL"
+        else
+          puts get_from_buffer(key)
         end
-      elsif operation == "N"
+      elsif operation == "NUMEQUALTO"
         puts "the key for numequalto_from_buffer is #{key}"
         puts numequalto_from_buffer(key)
       elsif operation == "COMMIT"
@@ -65,7 +70,7 @@ class CommandBuffer
 
     #grab original value for current key
     original_value = get_from_buffer(key)
-    #puts "original_value: #{original_value.inspect}, data_previous_index, #{data_previous_index} "
+
     #decrement the count for current key in buffer, if it is not nil
     if original_value.nil?
       #do nothing because the original didn't exist
@@ -173,11 +178,8 @@ class CommandBuffer
 
   def get_from_buffer(key)
     if data_change_history[key.to_sym].nil? || data_change_history[key.to_sym].empty?
-      #puts "get from data base using #{key}"
       return CommandExecuter.new("GET", key).excute
     else
-      #puts "data_change_history[key.to_sym]: #{data_change_history[key.to_sym]}"
-      #puts "get from history"
       return data_change_history[key.to_sym].last[:value]
     end
   end
