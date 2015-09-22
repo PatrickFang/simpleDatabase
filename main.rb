@@ -9,7 +9,7 @@ path_to_data_count = './db/count/'
 
 $db = SimpleDatabase.new(temp_path, path_to_data, path_to_data_count)
 $db.load_db
-$db.print_data
+#$db.print_data
 
 $nested_block_count = -1
 operation = ""
@@ -23,10 +23,7 @@ while operation != 'END'
     operation = parsed_command.operation
     key = parsed_command.key
     value = parsed_command.value
-    #puts "commands: #{operation} #{key} #{value}"
 
     command_buffer.process(operation, key, value)
-
-    #CommandExecuter.new(operation, key, value).excute
   end
 end

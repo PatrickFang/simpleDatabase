@@ -11,6 +11,7 @@ class CommandBuffer
   end
 
   def process(operation, key, value)
+    #non transaction
     if @block_counter == -1 && operation != "BEGIN"
       if operation == "GET" || operation == "NUMEQUALTO"
         value = CommandExecuter.new(operation, key, value).excute
@@ -24,6 +25,7 @@ class CommandBuffer
       else
         CommandExecuter.new(operation, key, value).excute
       end
+    #transactions
     else
       if operation == "SET" || operation == "UNSET"
         in_transaction_process(operation, key, value, @block_counter)
@@ -34,7 +36,6 @@ class CommandBuffer
           puts get_from_buffer(key)
         end
       elsif operation == "NUMEQUALTO"
-        puts "the key for numequalto_from_buffer is #{key}"
         puts numequalto_from_buffer(key).to_s
       elsif operation == "COMMIT"
         commit
@@ -106,7 +107,7 @@ class CommandBuffer
     #increment the count for the new key in buffer, if it is not nil
     if new_value.nil?
       #unsetting
-      #do nothing because the new value is nil, don't need to track
+      #no-op: don't need to track count for nil
     else
       if new_value != original_value
         count_change_history[new_value.to_sym] = [] if count_change_history[new_value.to_sym].nil?
@@ -146,9 +147,8 @@ class CommandBuffer
     @data_change_history = {}
     @affected_data = []
 
-    #commit the rest of count changes
+    #commit the count changes
     count_change_history.each do |key, change|
-      #write to file the new change
       old_count = CommandExecuter.new("NUMEQUALTO", key).excute.to_i
 
       diff = change.nil? || change.empty? ? 0: change.last[:diff].to_i
@@ -157,10 +157,10 @@ class CommandBuffer
       $db.set(key, diff, false)
 
       puts "update #{key}'s count to #{old_count}+#{diff} = #{new_count} "
+      #write to file the new change
       $db.create_or_update_file(key, new_count, false)
       puts "validation in master #{$db.get(key, false)}"
     end
-
     #clear the entire count history because they are committed
     @count_change_history = {}
     @affected_count = []
