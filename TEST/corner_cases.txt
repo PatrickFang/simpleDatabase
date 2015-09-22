@@ -1,0 +1,21 @@
+SET a 1
+SET b 1
+UNSET a 1
+
+ROLLBACK
+
+BEGIN
+ROLLBACK
+COMMIT
+
+BEGIN
+unset a
+unset x
+
+GET a
+GET b
+GET c
+NUMEQUALTO 1
+NUMEQUALTO 2
+
+END

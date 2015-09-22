@@ -22,6 +22,8 @@ class CommandBuffer
         end
       elsif operation == "ROLLBACK"
         puts "NO TRANSACTION"
+      #elsif operation == "COMMIT"
+        #no-op
       else
         CommandExecuter.new(operation, key, value).excute
       end
@@ -100,7 +102,6 @@ class CommandBuffer
 
     #increment the count for the new key in buffer, if it is not nil
     if new_value.nil?
-      #unsetting
       #no-op: don't need to track count for nil
     else
       if new_value != original_value
@@ -154,6 +155,9 @@ class CommandBuffer
   end
 
   def rollback
+    #no-op when most recent block didn't have any change
+    return if affected_data.length != @block_counter + 1
+
     #pop all changed values in affected keys
     affected_data.last.each do |key|
       data_change_history[key.to_sym].pop

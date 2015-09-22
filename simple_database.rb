@@ -10,11 +10,11 @@ class SimpleDatabase
   end
 
   def set(key, value=1, is_data=true)
+    return if key.nil?
+
     if is_data
       data_table[key.to_sym] = value.to_s
     else
-      return if key.nil?
-
       if count_table[key.to_sym]
         count_table[key.to_sym] = (value.to_i + count_table[key.to_sym].to_i).to_s
       else
@@ -25,6 +25,8 @@ class SimpleDatabase
 
   def get(key, is_data=true)
     if is_data
+      return nil if key.nil?
+
       data_table[key.to_sym]
     else
       return 0 if key.nil?
@@ -35,8 +37,12 @@ class SimpleDatabase
 
   def unset(key, is_data=true)
     if is_data
+      return if key.nil?
+
       data_table.delete(key.to_sym)
     else
+      return if key.nil?
+
       if count_table[key.to_sym]
         count_table[key.to_sym] = (count_table[key.to_sym].to_i - 1).to_s
       else

@@ -1,0 +1,10 @@
+SET a 1
+SET b 1
+UNSET a 1
+ROLLBACK
+BEGIN
+ROLLBACK
+COMMIT
+
+
+rollback on one empty block

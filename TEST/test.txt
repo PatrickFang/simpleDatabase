@@ -1,19 +1,65 @@
-SET a 1
-GET a
-SET b 2
-GET b
-SET c 1
-GET c
+test_basic_set_and_numequalto
+1
+2
+1
+2
+NULL
+1
 
-N 1
-UNSET a
-GET a
-N 1
+Integration_test1
 
-BEGIN
-SET a 1
-SET b 1
-SET c 1
-SET d 1
-SET a 3
-COMMIT
+-non block
+1
+2
+1
+NULL
+
+2
+1
+0
+0
+
+-first block
+3
+NULL
+1
+1
+
+2
+0
+1
+0
+
+-2 block
+NULL
+NULL
+NULL
+1
+
+1
+0
+0
+0
+
+-1 block, 1 rollback
+3
+NULL
+1
+1
+
+2
+0
+1
+0
+
+-1 block committed
+3
+NULL
+1
+1
+
+2
+0
+1
+0
+
