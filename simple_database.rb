@@ -38,7 +38,7 @@ class SimpleDatabase
       data_table.delete(key.to_sym)
     else
       if count_table[key.to_sym]
-        count_table[key.to_sym] -= 1
+        count_table[key.to_sym] = (count_table[key.to_sym].to_i - 1).to_s
       else
         count_table[key.to_sym] = 0
       end
@@ -47,7 +47,6 @@ class SimpleDatabase
 
   def delete_data_file(key)
     full_path = "#{dir_path_to_data}#{key}.txt"
-    puts "deleting file with key: #{key}"
     File.delete(full_path)
   end
 
@@ -58,7 +57,6 @@ class SimpleDatabase
       "#{dir_path_to_count}#{key}.txt"
     end
 
-    #puts "writing new count: #{value}" unless is_data
     File.open(full_path, 'w') { |f| f.write(value) }
   end
 
