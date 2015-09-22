@@ -9,14 +9,14 @@ class SimpleDatabase
     @count_table       ||= {}
   end
 
-  def set(key, value, is_data=true)
+  def set(key, value=1, is_data=true)
     if is_data
       data_table[key.to_sym] = value
     else
       if count_table[key.to_sym]
-        count_table[key.to_sym] += 1
+        count_table[key.to_sym] += value.to_i
       else
-        count_table[key.to_sym] = 1
+        count_table[key.to_sym] = value.to_i
       end
     end
   end

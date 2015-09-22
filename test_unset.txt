@@ -1,0 +1,20 @@
+SET a 1
+GET a
+SET b 2
+GET b
+SET c 1
+GET c
+
+N 1
+UNSET a
+GET a
+N 1
+
+BEGIN
+SET a 1
+SET b 1
+SET c 1
+SET d 1
+SET a 3
+UNSET a
+COMMIT
