@@ -11,20 +11,24 @@ class SimpleDatabase
 
   def set(key, value=1, is_data=true)
     if is_data
-      data_table[key.to_sym] = value
+      data_table[key.to_sym] = value.to_s
     else
+      return if key.nil?
+
       if count_table[key.to_sym]
-        count_table[key.to_sym] += value.to_i
+        count_table[key.to_sym] = (value.to_i + count_table[key.to_sym].to_i).to_s
       else
-        count_table[key.to_sym] = value.to_i
+        count_table[key.to_sym] = value.to_s
       end
     end
   end
 
   def get(key, is_data=true)
     if is_data
-      data_table[key.to_sym] #? data_table[key.to_sym] : "NULL"
+      data_table[key.to_sym]
     else
+      return 0 if key.nil?
+
       count_table[key.to_sym] ? count_table[key.to_sym] : 0
     end
   end

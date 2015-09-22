@@ -13,9 +13,17 @@ class CommandExecuter
       $db.set(key, value)
       $db.create_or_update_file(key, value)
     when "SET"
+      #decrement the count of the old value
+      old_value = $db.get(key)
+      $db.set(old_value, -1, false)
+      new_count_for_old_value = $db.get(old_value, false)
+      $db.create_or_update_file(old_value, new_count_for_old_value, false)
+
+      #update value for the key
       $db.set(key, value)
       $db.create_or_update_file(key, value)
 
+      #increment the count of the new value
       $db.set(value, 1, false)
       new_count = $db.get(value, false)
       $db.create_or_update_file(value, new_count, false)

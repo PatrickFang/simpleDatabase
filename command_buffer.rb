@@ -23,8 +23,11 @@ class CommandBuffer
       if operation == "SET" || operation == "UNSET"
         in_transaction_process(operation, key, value, @block_counter)
       elsif operation == "GET"
-        puts "data change history is emtpy" if data_change_history.nil?
-        puts get_from_buffer(key)
+        if get_from_buffer(key)
+          puts get_from_buffer(key)
+        else
+          puts "NULL"
+        end
       elsif operation == "N"
         puts "the key for numequalto_from_buffer is #{key}"
         puts numequalto_from_buffer(key)
