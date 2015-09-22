@@ -20,7 +20,7 @@ class CommandBuffer
           puts value
         end
       elsif operation == "ROLLBACK"
-        "NO TRANSACTION"
+        puts "NO TRANSACTION"
       else
         CommandExecuter.new(operation, key, value).excute
       end
@@ -35,7 +35,7 @@ class CommandBuffer
         end
       elsif operation == "NUMEQUALTO"
         puts "the key for numequalto_from_buffer is #{key}"
-        puts numequalto_from_buffer(key)
+        puts numequalto_from_buffer(key).to_s
       elsif operation == "COMMIT"
         commit
         @block_counter = -1
@@ -61,6 +61,7 @@ class CommandBuffer
 
     affected_data[block_index] = [] if affected_data[block_index].nil?
     affected_data[block_index] |= [key]
+    affected_data.compact!
 
     data_change_history[key.to_sym] = [] if data_change_history[key.to_sym].nil?
     history_for_current_key = data_change_history[key.to_sym]
@@ -88,6 +89,7 @@ class CommandBuffer
           count_change_history[original_value.to_sym].last[:diff] = last_change - 1
         end
         affected_count[block_index] |= [original_value]
+        affected_count.compact!
       end
     end
 
@@ -119,6 +121,7 @@ class CommandBuffer
           count_change_history[new_value.to_sym].last[:diff] = last_change + 1
         end
         affected_count[block_index] |= [new_value]
+        affected_count.compact!
       end
     end
 
@@ -146,10 +149,11 @@ class CommandBuffer
     #commit the rest of count changes
     count_change_history.each do |key, change|
       #write to file the new change
-      old_count = CommandExecuter.new("NUMEQUALTO", key).excute
+      old_count = CommandExecuter.new("NUMEQUALTO", key).excute.to_i
 
-      diff = change.last[:diff]
+      diff = change.nil? || change.empty? ? 0: change.last[:diff].to_i
       new_count = diff + old_count
+
       $db.set(key, diff, false)
 
       puts "update #{key}'s count to #{old_count}+#{diff} = #{new_count} "
@@ -185,11 +189,15 @@ class CommandBuffer
   end
 
   def numequalto_from_buffer(key)
-    initial_count = CommandExecuter.new("NUMEQUALTO", key).excute
+    initial_count = CommandExecuter.new("NUMEQUALTO", key).excute.to_i
     if count_change_history[key.to_sym].nil?
       initial_count
     else
-      initial_count + count_change_history[key.to_sym].last[:diff]
+      if count_change_history[key.to_sym].nil? || count_change_history[key.to_sym].empty?
+        initial_count
+      else
+        initial_count + count_change_history[key.to_sym].last[:diff].to_i
+      end
     end
   end
 end
