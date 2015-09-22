@@ -49,17 +49,11 @@ class CommandBuffer
         end
       elsif operation == "BEGIN"
         @block_counter += 1
-        puts "current count: #{@block_counter}"
       end
     end
   end
 
   def in_transaction_process(operation, key, value, block_index)
-    puts "data_change_history: #{data_change_history}"
-    puts "count_change_history: #{count_change_history}"
-    puts "affected_data: for block_index: #{block_index} key: #{key} #{affected_data[block_index]}"
-    puts "affected_count: for block_index: #{block_index} key: #{key} #{affected_count[block_index]}"    
-
     affected_data[block_index] = [] if affected_data[block_index].nil?
     affected_data[block_index] |= [key]
     affected_data.compact!
@@ -125,11 +119,6 @@ class CommandBuffer
         affected_count.compact!
       end
     end
-
-    puts "data_change_history: #{data_change_history}"
-    puts "count_change_history: #{count_change_history}"
-    puts "affected_data: #{affected_data}"    
-    puts "affected_count: #{affected_count}"    
   end
 
   def commit
@@ -156,10 +145,8 @@ class CommandBuffer
 
       $db.set(key, diff, false)
 
-      puts "update #{key}'s count to #{old_count}+#{diff} = #{new_count} "
       #write to file the new change
       $db.create_or_update_file(key, new_count, false)
-      puts "validation in master #{$db.get(key, false)}"
     end
     #clear the entire count history because they are committed
     @count_change_history = {}
