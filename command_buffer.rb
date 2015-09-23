@@ -22,7 +22,7 @@ class CommandBuffer
         end
       elsif operation == "ROLLBACK"
         puts "NO TRANSACTION"
-      #elsif operation == "COMMIT"
+      elsif operation == "COMMIT"
         #no-op
       else
         CommandExecuter.new(operation, key, value).excute
@@ -50,8 +50,6 @@ class CommandBuffer
       elsif operation == "ROLLBACK"
         if @block_counter == -1
           "NO TRANSACTION"
-        #elsif @block_counter != -1 && current_block_no_change
-          #no op
         else
           rollback
           @block_counter -= 1
