@@ -29,6 +29,11 @@ class CommandBuffer
       end
     #transactions
     else
+      if operation != "BEGIN"
+        affected_data[@block_counter] = [] if affected_data[@block_counter].nil?
+        affected_count[@block_counter] = [] if affected_count[@block_counter].nil?
+      end
+
       if operation == "SET" || operation == "UNSET"
         in_transaction_process(operation, key, value, @block_counter)
       elsif operation == "GET"
@@ -45,6 +50,8 @@ class CommandBuffer
       elsif operation == "ROLLBACK"
         if @block_counter == -1
           "NO TRANSACTION"
+        #elsif @block_counter != -1 && current_block_no_change
+          #no op
         else
           rollback
           @block_counter -= 1
@@ -59,9 +66,7 @@ class CommandBuffer
     return if key.nil?
 
     #initialize
-    affected_data[block_index] = [] if affected_data[block_index].nil?
     data_change_history[key.to_sym] = [] if data_change_history[key.to_sym].nil?
-    affected_count[block_index] = [] if affected_count[block_index].nil?
 
     #start processing current transaction block
     #grab original value for current key
@@ -115,9 +120,6 @@ class CommandBuffer
   end
 
   def rollback
-    #no-op when most recent block didn't have any change
-    return if affected_data.length != @block_counter + 1
-
     #pop all changed values in affected keys
     affected_data.last.each do |key|
       data_change_history[key.to_sym].pop
