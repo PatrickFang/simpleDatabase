@@ -37,5 +37,7 @@ while operation != 'END'
   end
 end
 
+#-------------comment out if need persistency
 FileUtils.rm_rf(path_to_data) if File.directory?(path_to_data)  #comment out if need persistency
 FileUtils.rm_rf(path_to_data_count) if File.directory?(path_to_data_count) #comment out if need persistency
+#-------------comment out if need persistency

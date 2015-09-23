@@ -56,70 +56,30 @@ class CommandBuffer
   end
 
   def in_transaction_process(operation, key, value, block_index)
+    return if key.nil?
+
+    #initialize
     affected_data[block_index] = [] if affected_data[block_index].nil?
-    affected_data[block_index] |= [key]
-    affected_data.compact!
-
     data_change_history[key.to_sym] = [] if data_change_history[key.to_sym].nil?
-    history_for_current_key = data_change_history[key.to_sym]
-    data_previous_index = history_for_current_key.empty? ? -1 : history_for_current_key.last[:block_index]
-
     affected_count[block_index] = [] if affected_count[block_index].nil?
 
+    #start processing current transaction block
     #grab original value for current key
     original_value = get_from_buffer(key)
-
-    #decrement the count for current key in buffer, if it is not nil
-    if original_value.nil?
-      #do nothing because the original didn't exist
-    else
-      if value != original_value
-        count_change_history[original_value.to_sym] = [] if count_change_history[original_value.to_sym].nil?
-        history_for_original_value = count_change_history[original_value.to_sym]
-        count_previous_index = history_for_original_value.empty? ? -1 : history_for_original_value.last[:block_index]
-        last_change = history_for_original_value.empty? ? 0 : history_for_original_value.last[:diff]
-        if block_index != count_previous_index
-          #creates a new entry in history
-          count_change_history[original_value.to_sym] << { diff: last_change - 1, block_index: block_index } 
-        else
-          #if the same block, the new values overwrites the last history
-          count_change_history[original_value.to_sym].last[:diff] = last_change - 1
-        end
-        affected_count[block_index] |= [original_value]
-        affected_count.compact!
-      end
-    end
+    decrement_count_for_value(value, original_value, block_index)
+    affected_count[block_index] |= [original_value] unless original_value.nil?
+    affected_count.compact!
 
     #update data history for current key
-    if block_index != data_previous_index
-      data_change_history[key.to_sym] << { value: value, block_index: block_index }  
-    else
-      data_change_history[key.to_sym].last[:value] = value
-    end
+    update_data_history_for(key, value, block_index)
 
     #grab new value for current key
-    new_value = value
+    increment_count_for_value(value, original_value, block_index)
 
-    #increment the count for the new key in buffer, if it is not nil
-    if new_value.nil?
-      #no-op: don't need to track count for nil
-    else
-      if new_value != original_value
-        count_change_history[new_value.to_sym] = [] if count_change_history[new_value.to_sym].nil?
-        history_for_new_value = count_change_history[new_value.to_sym]
-        count_previous_index = history_for_new_value.empty? ? -1 : history_for_new_value.last[:block_index]
-        last_change = history_for_new_value.empty? ? 0 : history_for_new_value.last[:diff]
-        if block_index != count_previous_index
-          #creates a new entry in history
-          count_change_history[new_value.to_sym] << { diff: last_change + 1, block_index: block_index }
-        else
-          #if the same block, the update overwrites the last history
-          count_change_history[new_value.to_sym].last[:diff] = last_change + 1
-        end
-        affected_count[block_index] |= [new_value]
-        affected_count.compact!
-      end
-    end
+    affected_data[block_index] |= [key]
+    affected_data.compact!
+    affected_count[block_index] |= [value] unless value.nil?
+    affected_count.compact!
   end
 
   def commit
@@ -169,6 +129,59 @@ class CommandBuffer
       count_change_history[key.to_sym].pop
     end
     affected_count.pop
+  end
+
+  def decrement_count_for_value(new_value, original_value, block_index)
+    #decrement the count for current key in buffer, if it is not nil
+    if original_value.nil?
+      #do nothing because the original didn't exist
+    else
+      if new_value != original_value
+        count_change_history[original_value.to_sym] = [] if count_change_history[original_value.to_sym].nil?
+        history_for_original_value = count_change_history[original_value.to_sym]
+        count_previous_index = history_for_original_value.empty? ? -1 : history_for_original_value.last[:block_index]
+        last_change = history_for_original_value.empty? ? 0 : history_for_original_value.last[:diff]
+        if block_index != count_previous_index
+          #creates a new entry in history
+          count_change_history[original_value.to_sym] << { diff: last_change - 1, block_index: block_index } 
+        else
+          #if the same block, the new values overwrites the last history
+          count_change_history[original_value.to_sym].last[:diff] = last_change - 1
+        end
+      end
+    end
+  end
+
+  def update_data_history_for(key, value, block_index)
+    history_for_current_key = data_change_history[key.to_sym]
+    data_previous_index = history_for_current_key.empty? ? -1 : history_for_current_key.last[:block_index]
+
+    if block_index != data_previous_index
+      data_change_history[key.to_sym] << { value: value, block_index: block_index }  
+    else
+      data_change_history[key.to_sym].last[:value] = value
+    end
+  end
+
+  def increment_count_for_value(new_value, original_value, block_index)
+    #increment the count for the new key in buffer, if it is not nil
+    if new_value.nil?
+      #no-op: don't need to track count for nil
+    else
+      if new_value != original_value
+        count_change_history[new_value.to_sym] = [] if count_change_history[new_value.to_sym].nil?
+        history_for_new_value = count_change_history[new_value.to_sym]
+        count_previous_index = history_for_new_value.empty? ? -1 : history_for_new_value.last[:block_index]
+        last_change = history_for_new_value.empty? ? 0 : history_for_new_value.last[:diff]
+        if block_index != count_previous_index
+          #creates a new entry in history
+          count_change_history[new_value.to_sym] << { diff: last_change + 1, block_index: block_index }
+        else
+          #if the same block, the update overwrites the last history
+          count_change_history[new_value.to_sym].last[:diff] = last_change + 1
+        end
+      end
+    end
   end
 
   def get_from_buffer(key)
